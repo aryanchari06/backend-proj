@@ -1,0 +1,16 @@
+{
+  "name": "megaproject",
+  "version": "1.0.0",
+  "description": "backend from chai aur backned",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "js",
+    "backend",
+    "mern"
+  ],
+  "author": "Aryan",
+  "license": "ISC"
+}
