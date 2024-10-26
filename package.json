@@ -2,9 +2,10 @@
   "name": "megaproject",
   "version": "1.0.0",
   "description": "backend from chai aur backned",
+  "type": "module",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev": "nodemon src/index.js"
   },
   "keywords": [
     "js",
@@ -12,5 +13,8 @@
     "mern"
   ],
   "author": "Aryan",
-  "license": "ISC"
+  "license": "ISC",
+  "devDependencies": {
+    "nodemon": "^3.1.7"
+  }
 }
