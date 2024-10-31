@@ -1,9 +1,66 @@
 import { asyncHandler } from "../utils/asyncHandler.js";
+import { ApiError } from "../utils/ApiErrors.js";
+import { User } from "../models/user.models.js";
+import { uploadOnCloudinary } from "../utils/Cloudinary.js";
+import { ApiResponse } from "../utils/ApiResponse.js";
 
 const registerUser = asyncHandler(async (req, res) => {
   res.status(200).json({
-    message: "ok"
+    message: "ok",
   });
+
+  const { email, username, fullname, password } = req.body;
+  console.log("email: ", email);
+
+  if (
+    [fullname, email, password, username].some((field) => field?.trim() === "")
+  ) {
+    throw new ApiError(400, "All field are required!");
+  }
+
+  const existedUser = User.findOne({
+    $or: [{ email }, { username }],
+  });
+  if (existedUser) {
+    throw new ApiError(409, "User with same credentials already exists");
+  }
+
+  console.log("Files from multer: ", req.files, req.files.avatar);
+  const avatarLocalPath = req.files?.avatar[0]?.path;
+
+  const coverImageLocalPath = req.files?.coverImage[0]?.path;
+
+  if (!avatarLocalPath) {
+    throw new ApiError(400, "Avatar file is missing");
+  }
+
+  const avatar = await uploadOnCloudinary(avatarLocalPath);
+  const coverImage = await uploadOnCloudinary(coverImageLocalPath);
+
+  if (!avatar) {
+    throw new ApiError(400, "Avatar file is required");
+  }
+
+  const user = await User.create({
+    username: username.toLowerCase(),
+    email,
+    password,
+    fullname,
+    avatar: avatar.url,
+    coverImage: coverImage?.url || "",
+  });
+
+  const createdUser = await User.findById(user._id).select(
+    "-password -refreshToken" //password and refreshToken to be excluded fomr createdUser
+  );
+
+  if (!createdUser) {
+    throw new ApiError(500, "Something went wrong while registering the user");
+  }
+
+  return res
+    .status(201)
+    .json(new ApiResponse(200, createdUser, "User registered successfully"));
 });
 
 export { registerUser };
