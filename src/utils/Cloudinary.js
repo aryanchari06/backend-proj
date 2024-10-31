@@ -1,5 +1,5 @@
-import { v2 as cloudinary } from "cloudinary";
-import { fs } from "fs";
+// import { v2 as cloudinary } from "cloudinary";
+import fs from "fs";
 
 import { v2 as cloudinary } from "cloudinary";
 
@@ -15,7 +15,8 @@ const uploadOnCloudinary = async (localFilePath) => {
     const response = await cloudinary.uploader.upload(localFilePath, {
       resource_type: "auto",
     });
-    console.log("File is uploaded on cloudinary", response, response.url);
+    fs.unlinkSync(localFilePath)
+    // console.log("File is uploaded on cloudinary", response, response.url);
     return response;
   } catch (error) {
     fs.unlinkSync(localFilePath); //removes file from our server which was temporary
