@@ -50,7 +50,7 @@ const userSchema = new Schema(
 );
 
 userSchema.pre("save", async function (next) {
-  if (!this.isModified("password")) return next();
+  if (!this.isModified("password")) return next(); //next() is defined by mongoose and it indicates end of the password bcrypting process or skipping of the hashing
   this.password = await bcryptjs.hash(this.password, 10);
   next();
 });
