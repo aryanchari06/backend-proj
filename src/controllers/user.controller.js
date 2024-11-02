@@ -8,6 +8,7 @@ const generateAccessAndRefreshTokens = async (userId) => {
   try {
     const user = await User.findById(userId);
     const accessToken = user.generateAccessToken();
+    // console.log("initial access token", accessToken)
     const refreshToken = user.generateRefreshToken();
 
     user.refreshToken = refreshToken;
@@ -92,6 +93,7 @@ const registerUser = asyncHandler(async (req, res) => {
 const loginUser = asyncHandler(async (req, res) => {
   const { email, password, username } = req.body;
 
+  // console.log(email, username, password)
   if (!email && !username)
     throw new ApiError(400, "Username or email is required");
 
@@ -108,9 +110,12 @@ const loginUser = asyncHandler(async (req, res) => {
     user._id
   );
 
+  // console.log("This is access token: ",accessToken)
+
   const loggedInUser = await User.findOne(user._id).select(
     "-password -refreshToken"
   ); //to get the updated user with refresh token and retrive it without password and refresh token (it'll probably be sent to frontend)
+
 
   const options = {
     httpOnly: true,
@@ -122,13 +127,15 @@ const loginUser = asyncHandler(async (req, res) => {
     .cookie("accessToken", accessToken, options)
     .cookie("refreshToken", refreshToken, options)
     .json(
-      200,
-      {
-        user: loggedInUser,
-        accessToken,
-        refreshToken,
-      },
-      "User logged in successfully"
+      new ApiResponse(
+        200,
+        {
+          user: loggedInUser,
+          accessToken,
+          refreshToken,
+        },
+        "User logged in successfully"
+      )
     );
 });
 
@@ -141,7 +148,7 @@ const logoutUser = asyncHandler(async (req, res) => {
       },
     },
     {
-      new: true,  //just to know that a new reponse is generated
+      new: true, //just to know that a new reponse is generated
     }
   );
 
