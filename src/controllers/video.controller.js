@@ -56,6 +56,7 @@ const getAllVideos = asyncHandler(async (req, res) => {
 
 const publishAVideo = asyncHandler(async (req, res) => {
   const { title, description } = req.body;
+  const initialViews = 0;
   // TODO: get video, upload to cloudinary, create video
   const videoLocalPath = req.files?.videoFile[0]?.path;
   const thumbnailLocalPath = req.files?.thumbnail[0]?.path;
@@ -82,7 +83,7 @@ const publishAVideo = asyncHandler(async (req, res) => {
     title: title,
     description: description,
     duration: videoFile.duration,
-    views: 0,
+    views: initialViews,
     isPublished: true,
     owner: req.user._id,
   });
@@ -231,6 +232,17 @@ const getVideoById = asyncHandler(async (req, res) => {
   // console.log(fetchedVideo);
 
   if (!fetchedVideo) throw new ApiError(404, "Video not found");
+
+  await Video.updateOne(
+    {
+      _id: new mongoose.Types.ObjectId(videoId),
+    },
+    {
+      $inc: {
+        views: 1,
+      },
+    }
+  );
   return res
     .status(200)
     .json(new ApiResponse(200, fetchedVideo, "Video fetched successfully!"));
