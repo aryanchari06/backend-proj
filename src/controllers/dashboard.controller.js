@@ -34,7 +34,7 @@ const getChannelStats = asyncHandler(async (req, res) => {
           {
             $match: {
               isPublished: true,
-            }
+            },
           },
           {
             $lookup: {
@@ -46,27 +46,26 @@ const getChannelStats = asyncHandler(async (req, res) => {
                 {
                   $project: {
                     _id: 1,
-                  }
+                  },
                 },
-               
-              ]
+              ],
             },
           },
           {
             $addFields: {
               videoLikesCount: {
-                $size: "$videoLikes"
-              }
-            }
-          }
+                $size: "$videoLikes",
+              },
+            },
+          },
         ],
       },
     },
-    
+
     {
       $addFields: {
         totalLikesCount: {
-          $sum: "$channelVideos.videoLikesCount"
+          $sum: "$channelVideos.videoLikesCount",
         },
         totalViews: {
           $sum: "$channelVideos.views",
@@ -86,9 +85,9 @@ const getChannelStats = asyncHandler(async (req, res) => {
           {
             $project: {
               username: 1,
-            }
-          }
-        ]
+            },
+          },
+        ],
       },
     },
     {
@@ -101,10 +100,10 @@ const getChannelStats = asyncHandler(async (req, res) => {
     {
       $project: {
         password: 0,
-        refreshToken:0,
-        watchHistory:0
-      }
-    }
+        refreshToken: 0,
+        watchHistory: 0,
+      },
+    },
   ]);
 
   if (!userChannel) throw new ApiError(400, "Could not fetch channel details");
