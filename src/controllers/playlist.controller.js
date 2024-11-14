@@ -166,7 +166,7 @@ const addVideoToPlaylist = asyncHandler(async (req, res) => {
 const removeVideoFromPlaylist = asyncHandler(async (req, res) => {
   const { playlistId, videoId } = req.params;
   // TODO: remove video from playlist
-  
+
   if (!playlistId || !isValidObjectId(playlistId))
     throw new ApiError(400, "Invalid playlist link");
   if (!videoId || !isValidObjectId(videoId))
