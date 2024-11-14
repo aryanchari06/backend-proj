@@ -74,9 +74,9 @@ const toggleCommentLike = asyncHandler(async (req, res) => {
     new ApiResponse(
       200,
       {
-        "Comment liked/unliked": fetchedComment,
+        "Comment liked/ unliked": fetchedComment,
       },
-      "Comment liked/unliked sucessfully "
+      "Comment liked/ unliked sucessfully "
     )
   );
 });
