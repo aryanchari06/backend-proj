@@ -233,6 +233,22 @@ const getVideoById = asyncHandler(async (req, res) => {
 
   if (!fetchedVideo) throw new ApiError(404, "Video not found");
 
+  const currentUser = await User.findById(req.user._id);
+
+  if (!currentUser.watchHistory.includes(fetchedVideo[0]._id)) {
+    const addVideoToUserWatchHistory = await User.findByIdAndUpdate(
+      req.user._id,
+      {
+        $push: {
+          watchHistory: fetchedVideo[0]._id,
+        },
+      }
+    );
+
+    if (!addVideoToUserWatchHistory)
+      throw new ApiError(500, "Could not add video to watch history");
+  }
+
   await Video.updateOne(
     {
       _id: new mongoose.Types.ObjectId(videoId),
@@ -243,6 +259,7 @@ const getVideoById = asyncHandler(async (req, res) => {
       },
     }
   );
+
   return res
     .status(200)
     .json(new ApiResponse(200, fetchedVideo, "Video fetched successfully!"));
