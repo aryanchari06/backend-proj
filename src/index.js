@@ -10,6 +10,25 @@ dotenv.config({
 });
 // const app = express();
 
+
+connectDB()
+.then(() => {
+  app.on("error", (err) => {
+    console.log("ERR: ", err);
+  });
+  app.listen(process.env.PORT || 8000, () => {
+    console.log(`Service running on port ${process.env.PORT}`);
+  });
+})
+.catch((error) => {
+  console.log("Error while connecting to MONGODB !!!", error);
+});
+
+
+export default (req, res) => {
+  app(req, res); // This ensures Vercel handles the request to the Express app
+};
+
 //iffe
 /*
 (async () => {
@@ -27,16 +46,3 @@ dotenv.config({
   }
 })();
 */
-
-connectDB()
-  .then(() => {
-    app.on("error", (err) => {
-      console.log("ERR: ", err);
-    });
-    app.listen(process.env.PORT || 8000, () => {
-      console.log(`Service running on port ${process.env.PORT}`);
-    });
-  })
-  .catch((error) => {
-    console.log("Error while connecting to MONGODB !!!", error);
-  });
