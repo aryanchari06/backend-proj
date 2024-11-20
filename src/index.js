@@ -10,18 +10,18 @@ dotenv.config({
 });
 // const app = express();
 
+app.use((req, res, next) => {
+  res.setHeader(
+    'Content-Security-Policy',
+    "default-src 'none'; script-src 'self' https://vercel.live; style-src 'self'; img-src 'self'; connect-src 'self'; font-src 'self';"
+  );
+  next();
+});
 
 connectDB()
 .then(() => {
   app.on("error", (err) => {
     console.log("ERR: ", err);
-  });
-  app.use((req, res, next) => {
-    res.setHeader(
-      'Content-Security-Policy',
-      "default-src 'none'; script-src 'self' https://vercel.live; style-src 'self'; img-src 'self'; connect-src 'self'; font-src 'self';"
-    );
-    next();
   });
   app.listen(process.env.PORT || 8000, () => {
     console.log(`Service running on port ${process.env.PORT}`);
