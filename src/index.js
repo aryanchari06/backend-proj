@@ -12,25 +12,24 @@ dotenv.config({
 
 app.use((req, res, next) => {
   res.setHeader(
-    'Content-Security-Policy',
-    "default-src 'none'; script-src 'self' https://vercel.live; style-src 'self'; img-src 'self'; connect-src 'self'; font-src 'self';"
+    "Content-Security-Policy",
+    "default-src 'none'; script-src 'self' https://vercel.live; script-src-elem 'self' https://vercel.live; style-src 'self'; img-src 'self'; connect-src 'self'; font-src 'self';"
   );
   next();
 });
 
 connectDB()
-.then(() => {
-  app.on("error", (err) => {
-    console.log("ERR: ", err);
+  .then(() => {
+    app.on("error", (err) => {
+      console.log("ERR: ", err);
+    });
+    app.listen(process.env.PORT || 8000, () => {
+      console.log(`Service running on port ${process.env.PORT}`);
+    });
+  })
+  .catch((error) => {
+    console.log("Error while connecting to MONGODB !!!", error);
   });
-  app.listen(process.env.PORT || 8000, () => {
-    console.log(`Service running on port ${process.env.PORT}`);
-  });
-})
-.catch((error) => {
-  console.log("Error while connecting to MONGODB !!!", error);
-});
-
 
 export default (req, res) => {
   app(req, res); // This ensures Vercel handles the request to the Express app
