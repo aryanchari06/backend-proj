@@ -23,7 +23,7 @@ app.use(cookieParser());
 
 //routes import
 import userRouter from "./routes/user.routes.js";
-import healthcheckRouter from "./routes/healthcheck.routes.js"
+import healthcheckRouter from "./routes/healthCheck.routes.js"
 import tweetRouter from "./routes/tweet.routes.js"
 import subscriptionRouter from "./routes/subscription.routes.js"
 import videoRouter from "./routes/video.routes.js"
