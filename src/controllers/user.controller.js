@@ -122,12 +122,19 @@ const loginUser = asyncHandler(async (req, res) => {
   const options = {
     httpOnly: true,
     secure: true,
+    sameSite: 'Strict',
+    expires: process.env.ACCESS_TOKEN_EXPIRY
+  };
+
+  const refreshOptions = {
+    ...options,
+    expires: process.env.REFRESH_TOKEN_EXPIRY
   };
 
   return res
     .status(200)
     .cookie("accessToken", accessToken, options)
-    .cookie("refreshToken", refreshToken, options)
+    .cookie("refreshToken", refreshToken, refreshOptions)
     .json(
       new ApiResponse(
         200,
