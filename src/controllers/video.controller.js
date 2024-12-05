@@ -6,16 +6,79 @@ import { ApiResponse } from "../utils/ApiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { uploadOnCloudinary } from "../utils/Cloudinary.js";
 
+// const getAllVideos = asyncHandler(async (req, res) => {
+//   const { page = 1, limit = 10, query, sortBy, sortType, userId } = req.query;
+//   //TODO: get all videos based on query, sort, pagination
+//   const options = {
+//     page: parseInt(page),
+//     limit: parseInt(limit),
+//   };
+
+//   const pipeline = [];
+
+//   if (query) {
+//     pipeline.push({
+//       $match: {
+//         $or: [
+//           { title: { $regex: query, $options: "i" } },
+//           { description: { $regex: query, $options: "i" } },
+//         ],
+//       },
+//       $lookup: {
+//         from: "users",
+//         localField: "owner",
+//         foreignField: "_id",
+//         as: "videoOwner",
+//         pipeline: [{ $project: { username: 1, avatar: 1 } }],
+//       },
+//     });
+//   }
+
+//   if (sortBy) {
+//     pipeline.push({
+//       $sort: {
+//         [sortBy]: parseInt(sortType), //sortType = 1 (ascending), -1(descending)
+//       },
+//     });
+//   }
+
+//   pipeline.push({
+//     $skip: (options.page - 1) * limit,
+//   });
+
+//   pipeline.push({
+//     $limit: options.limit,
+//   });
+
+//   const fetchedVideos = Video.aggregate();
+//   const videoList = await Video.aggregatePaginate(fetchedVideos, options);
+
+//   if (!videoList) throw new ApiError(400, "Could not fetch videos");
+//   // console.log(videoList);
+
+//   return res
+//     .status(200)
+//     .json(new ApiResponse(200, videoList, "Videos fetched sucessfully"));
+// });
+
 const getAllVideos = asyncHandler(async (req, res) => {
-  const { page = 1, limit = 10, query, sortBy, sortType, userId } = req.query;
-  //TODO: get all videos based on query, sort, pagination
+  const {
+    page = 1,
+    limit = 10,
+    query,
+    sortBy = "createdAt",
+    sortType = 1,
+    userId,
+  } = req.query;
+
   const options = {
-    page: parseInt(page),
-    limit: parseInt(limit),
+    page: parseInt(page, 10),
+    limit: parseInt(limit, 10),
   };
 
   const pipeline = [];
 
+  // Match videos based on search query
   if (query) {
     pipeline.push({
       $match: {
@@ -27,31 +90,67 @@ const getAllVideos = asyncHandler(async (req, res) => {
     });
   }
 
-  if (sortBy) {
+  // Match videos based on userId if provided
+  if (userId) {
     pipeline.push({
-      $sort: {
-        [sortBy]: parseInt(sortType), //sortType = 1 (ascending), -1(descending)
-      },
+      $match: { owner: userId },
     });
   }
 
+  // Lookup to fetch video owner details
   pipeline.push({
-    $skip: (options.page - 1) * limit,
+    $lookup: {
+      from: "users",
+      localField: "owner",
+      foreignField: "_id",
+      as: "videoOwner",
+      pipeline: [{ $project: { username: 1, avatar: 1 } }],
+    },
+  });
+  pipeline.push(
+    {
+      $lookup: {
+        from: "likes",
+        localField: "_id",
+        foreignField: "video",
+        as: "videoLikes",
+      },
+    },
+    {
+      $addFields: {
+        likesCount: {
+          $size: "$videoLikes",
+        },
+      },
+    }
+  );
+
+  // Sort videos
+  pipeline.push({
+    $sort: {
+      [sortBy]: parseInt(sortType, 10), // Ensure sortType is parsed as integer
+    },
   });
 
-  pipeline.push({
-    $limit: options.limit,
-  });
+  // Pagination stages
+  pipeline.push(
+    { $skip: (options.page - 1) * options.limit },
+    { $limit: options.limit }
+  );
 
-  const fetchedVideos = Video.aggregate();
-  const videoList = await Video.aggregatePaginate(fetchedVideos, options);
+  // Perform aggregation with pagination
+  const fetchedVideos = await Video.aggregatePaginate(
+    Video.aggregate(pipeline),
+    options
+  );
 
-  if (!videoList) throw new ApiError(400, "Could not fetch videos");
-  // console.log(videoList);
+  if (!fetchedVideos) {
+    throw new ApiError(400, "Could not fetch videos");
+  }
 
   return res
     .status(200)
-    .json(new ApiResponse(200, videoList, "Videos fetched sucessfully"));
+    .json(new ApiResponse(200, fetchedVideos, "Videos fetched successfully"));
 });
 
 const publishAVideo = asyncHandler(async (req, res) => {

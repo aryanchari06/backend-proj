@@ -6,6 +6,8 @@ import { ApiResponse } from "../utils/ApiResponse.js";
 import jwt from "jsonwebtoken";
 import { upload } from "../middlewares/multer.middleware.js";
 import mongoose from "mongoose";
+import ms from 'ms'; // Import the ms package to convert string durations
+
 
 const generateAccessAndRefreshTokens = async (userId) => {
   try {
@@ -93,10 +95,65 @@ const registerUser = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, createdUser, "User registered Successfully"));
 });
 
+// const loginUser = asyncHandler(async (req, res) => {
+//   const { email, password, username } = req.body;
+
+//   // console.log(email, username, password)
+//   if (!email && !username)
+//     throw new ApiError(400, "Username or email is required");
+
+//   const user = await User.findOne({
+//     $or: [{ username }, { email }],
+//   });
+
+//   if (!user) throw new ApiError(404, "User does not exist");
+
+//   const isPasswordValid = await user.isPasswordCorrect(password);
+//   if (!isPasswordValid) throw new ApiError(401, "Incorrect password");
+
+//   const { accessToken, refreshToken } = await generateAccessAndRefreshTokens(
+//     user._id
+//   );
+
+//   // console.log("This is access token: ",accessToken)
+
+//   const loggedInUser = await User.findOne(user._id).select(
+//     "-password -refreshToken"
+//   ); //to get the updated user with refresh token and retrive it without password and refresh token (it'll probably be sent to frontend)
+
+//   const options = {
+//     httpOnly: true,
+//     secure: true,
+//     sameSite: 'Strict',
+//     expires: process.env.ACCESS_TOKEN_EXPIRY
+//   };
+
+//   const refreshOptions = {
+//     ...options,
+//     expires: process.env.REFRESH_TOKEN_EXPIRY
+//   };
+
+//   return res
+//     .status(200)
+//     .cookie("accessToken", accessToken, options)
+//     .cookie("refreshToken", refreshToken, refreshOptions)
+//     .json(
+//       new ApiResponse(
+//         200,
+//         {
+//           user: loggedInUser,
+//           accessToken,
+//           refreshToken,
+//         },
+//         "User logged in successfully"
+//       )
+//     );
+// });
+
+
 const loginUser = asyncHandler(async (req, res) => {
   const { email, password, username } = req.body;
 
-  // console.log(email, username, password)
   if (!email && !username)
     throw new ApiError(400, "Username or email is required");
 
@@ -113,22 +170,27 @@ const loginUser = asyncHandler(async (req, res) => {
     user._id
   );
 
-  // console.log("This is access token: ",accessToken)
-
   const loggedInUser = await User.findOne(user._id).select(
     "-password -refreshToken"
-  ); //to get the updated user with refresh token and retrive it without password and refresh token (it'll probably be sent to frontend)
+  );
+
+  const accessTokenExpiry = ms(process.env.ACCESS_TOKEN_EXPIRY || '1d'); 
+  const refreshTokenExpiry = ms(process.env.REFRESH_TOKEN_EXPIRY || '10d'); 
+
+  if (isNaN(accessTokenExpiry) || isNaN(refreshTokenExpiry)) {
+    throw new ApiError(400, 'Invalid expiry time in environment variables');
+  }
 
   const options = {
     httpOnly: true,
-    secure: true,
+    secure: false,
     sameSite: 'Strict',
-    expires: process.env.ACCESS_TOKEN_EXPIRY
+    expires: new Date(Date.now() + accessTokenExpiry), 
   };
 
   const refreshOptions = {
     ...options,
-    expires: process.env.REFRESH_TOKEN_EXPIRY
+    expires: new Date(Date.now() + refreshTokenExpiry), 
   };
 
   return res
