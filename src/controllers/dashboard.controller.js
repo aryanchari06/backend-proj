@@ -18,6 +18,15 @@ const getChannelStats = asyncHandler(async (req, res) => {
       },
     },
     {
+      $project: {
+        avatar: 0,
+        coverImage: 0,
+        email: 0,
+        fullname: 0,
+        username: 0,
+      },
+    },
+    {
       $lookup: {
         from: "videos",
         localField: "_id",
@@ -125,6 +134,22 @@ const getChannelVideos = asyncHandler(async (req, res) => {
     {
       $match: {
         owner: new mongoose.Types.ObjectId(req.user._id),
+      },
+    },
+    {
+      $lookup: {
+        from: "users",
+        localField: "owner",
+        foreignField: "_id",
+        as: "videoOwner",
+        pipeline: [
+          {
+            $project: {
+              avatar: 1,
+              username: 1,
+            },
+          },
+        ],
       },
     },
   ]);

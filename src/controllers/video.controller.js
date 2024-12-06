@@ -244,70 +244,70 @@ const getVideoById = asyncHandler(async (req, res) => {
     },
 
     // //get a list of comments on the video
-    {
-      $lookup: {
-        from: "comments", //you are in video and want to get from comments
-        localField: "_id",
-        foreignField: "video",
-        as: "videoComments",
-        // pipeline: [
-        //   {
-        //     $lookup: {
-        //       from: "users",
-        //       localField: "_id",
-        //       foreignField: "owner",
-        //       as: "commentOwner",
-        //     },
-        //   },
-        //   {
-        //     $lookup: {
-        //       from: "likes",
-        //       localField: "_id",
-        //       foreignField: "comment",
-        //       as: "commentLikes",
-        //       pipeline: [
-        //         {
-        //           $project: {
-        //             likedBy: 1,
-        //           },
-        //         },
-        //         {
-        //           $lookup: {
-        //             from: "users",
-        //             localField: "likedBy",
-        //             foreignField: "_id",
-        //             as: "commentLikedByUsers",
-        //             pipeline: [
-        //               {
-        //                 $project: {
-        //                   fullname: 1,
-        //                   username: 1,
-        //                   avatar: 1,
-        //                 },
-        //               },
-        //             ],
-        //           },
-        //         },
-        //       ],
-        //     },
-        //   },
-        //   {
-        //     $addFields: {
-        //       commentLikesCount: {
-        //         $size: "$commentLikes",
-        //       },
-        //       hasUserLikedComment: {
-        //         $cond: {
-        //           if: { $in: [req.user?._id, "$commentLikes.likedBy"] },
-        //           then: true,
-        //           else: false,
-        //         },
-        //       },
-        //     },
-        //   },
-        // ],
-      },
-    },
+    // {
+    //   $lookup: {
+    //     from: "comments", //you are in video and want to get from comments
+    //     localField: "_id",
+    //     foreignField: "video",
+    //     as: "videoComments",
+    //     pipeline: [
+    //       {
+    //         $lookup: {
+    //           from: "users",
+    //           localField: "owner",
+    //           foreignField: "_id",
+    //           as: "commentOwner",
+    //         },
+    //       },
+    //       {
+    //         $lookup: {
+    //           from: "likes",
+    //           localField: "_id",
+    //           foreignField: "comment",
+    //           as: "commentLikes",
+    //           pipeline: [
+    //             {
+    //               $project: {
+    //                 likedBy: 1,
+    //               },
+    //             },
+    //             {
+    //               $lookup: {
+    //                 from: "users",
+    //                 localField: "likedBy",
+    //                 foreignField: "_id",
+    //                 as: "commentLikedByUsers",
+    //                 pipeline: [
+    //                   {
+    //                     $project: {
+    //                       fullname: 1,
+    //                       username: 1,
+    //                       avatar: 1,
+    //                     },
+    //                   },
+    //                 ],
+    //               },
+    //             },
+    //           ],
+    //         },
+    //       },
+    //       {
+    //         $addFields: {
+    //           commentLikesCount: {
+    //             $size: "$commentLikes",
+    //           },
+    //           hasUserLikedComment: {
+    //             $cond: {
+    //               if: { $in: [req.user?._id, "$commentLikes.likedBy"] },
+    //               then: true,
+    //               else: false,
+    //             },
+    //           },
+    //         },
+    //       },
+    //     ],
+    //   },
+    // },
 
     // //add video likes and comments count and if you have liked the video
     {
@@ -315,9 +315,9 @@ const getVideoById = asyncHandler(async (req, res) => {
         videoLikesCount: {
           $size: "$videoLikes",
         },
-        videoCommentsCount: {
-          $size: "$videoComments",
-        },
+        // videoCommentsCount: {
+        //   $size: "$videoComments",
+        // },
         isLiked: {
           $cond: {
             if: { $in: [req.user?._id, "$videoLikes.likedBy"] },
@@ -443,6 +443,7 @@ const togglePublishStatus = asyncHandler(async (req, res) => {
       )
     );
 });
+
 
 export {
   getAllVideos,

@@ -39,53 +39,54 @@ const getVideoComments = asyncHandler(async (req, res) => {
           //         as: "commentOwner",
           //       },
           //     },
+          
+        ],
+      },
+    },
+    {
+      $lookup: {
+        from: "likes",
+        localField: "_id",
+        foreignField: "comment",
+        as: "commentLikes",
+        pipeline: [
+          {
+            $project: {
+              likedBy: 1,
+            },
+          },
           {
             $lookup: {
-              from: "likes",
-              localField: "_id",
-              foreignField: "comment",
-              as: "commentLikes",
+              from: "users",
+              localField: "likedBy",
+              foreignField: "_id",
+              as: "commentLikedByUsers",
               pipeline: [
                 {
                   $project: {
-                    likedBy: 1,
-                  },
-                },
-                {
-                  $lookup: {
-                    from: "users",
-                    localField: "likedBy",
-                    foreignField: "_id",
-                    as: "commentLikedByUsers",
-                    pipeline: [
-                      {
-                        $project: {
-                          fullname: 1,
-                          username: 1,
-                          avatar: 1,
-                        },
-                      },
-                    ],
+                    fullname: 1,
+                    username: 1,
+                    avatar: 1,
                   },
                 },
               ],
             },
           },
-          {
-            $addFields: {
-              commentLikesCount: {
-                $size: "$commentLikes",
-              },
-              hasUserLikedComment: {
-                $cond: {
-                  if: { $in: [req.user?._id, "$commentLikes.likedBy"] },
-                  then: true,
-                  else: false,
-                },
-              },
-            },
-          },
         ],
+      },
+    },
+    {
+      $addFields: {
+        commentLikesCount: {
+          $size: "$commentLikes",
+        },
+        hasUserLikedComment: {
+          $cond: {
+            if: { $in: [req.user?._id, "$commentLikes.likedBy"] },
+            then: true,
+            else: false,
+          },
+        },
       },
     },
     {
