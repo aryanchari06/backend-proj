@@ -5,6 +5,7 @@ import { ApiResponse } from "../utils/ApiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { Video } from "../models/video.models.js";
 import { Comment } from "../models/comment.models.js";
+import { Tweet } from "../models/tweet.models.js";
 
 const toggleVideoLike = asyncHandler(async (req, res) => {
   const { videoId } = req.params;
@@ -86,7 +87,7 @@ const toggleTweetLike = asyncHandler(async (req, res) => {
   //TODO: toggle like on tweet
 
   if (!tweetId) throw new ApiError(400, "Invalid tweet link");
-  const fetchedTweet = await Comment.findById(tweetId);
+  const fetchedTweet = await Tweet.findById(tweetId);
   if (!fetchedTweet) throw new ApiError(404, "Tweet not found");
 
   const isLiked = await Like.findOne(
@@ -125,7 +126,7 @@ const getLikedVideos = asyncHandler(async (req, res) => {
     {
       $match: {
         likedBy: req.user._id,
-        video: {$ne: null}
+        video: { $ne: null },
       },
     },
     {
@@ -134,6 +135,24 @@ const getLikedVideos = asyncHandler(async (req, res) => {
         localField: "video",
         foreignField: "_id",
         as: "likedVideos",
+        pipeline: [
+          {
+            $lookup: {
+              from: "users",
+              localField: "owner",
+              foreignField: "_id",
+              as: "videoOwner",
+              pipeline: [
+                {
+                  $project: {
+                    username: 1,
+                    avatar: 1,
+                  },
+                },
+              ],
+            },
+          },
+        ],
       },
     },
   ]);

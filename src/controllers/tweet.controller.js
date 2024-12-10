@@ -20,11 +20,30 @@ const createTweet = asyncHandler(async (req, res) => {
 });
 
 const getUserTweets = asyncHandler(async (req, res) => {
-  // TODO: get user tweets
+  const { userId } = req.params;
+  // console.log(userId)
+
   const userTweets = await Tweet.aggregate([
     {
       $match: {
-        owner: req.user._id,
+        owner: new mongoose.Types.ObjectId(userId),
+      },
+    },
+    {
+      $lookup: {
+        from: "users",
+        localField: "owner",
+        foreignField: "_id",
+        as: "tweetOwner",
+        pipeline: [
+          {
+            $project: {
+              username: 1,
+              avatar: 1,
+              fullname: 1,
+            },
+          },
+        ],
       },
     },
     {
@@ -37,18 +56,90 @@ const getUserTweets = asyncHandler(async (req, res) => {
     },
     {
       $addFields: {
-        tweetLikes: {
-          $size: "$tweetLikes",
+        tweetLikesCount: { $size: "$tweetLikes" },
+        hasUserLikedTweet: {
+          $in: [
+            req.user._id,
+            {
+              $map: {
+                input: "$tweetLikes",
+                as: "like",
+                in: "$$like.likedBy",
+              },
+            },
+          ],
         },
       },
     },
+    {
+      $sort: { createdAt: -1 }, // Optional: sort tweets by newest first
+    },
   ]);
-  if (!userTweets) throw new ApiError(400, "Could not fetch user tweets");
+
+  if (!userTweets || userTweets.length === 0) {
+    return res
+      .status(200)
+      .json(new ApiResponse(200, [], "No tweets found for this user"));
+  }
+  // console.log(userTweets)
 
   return res
     .status(200)
     .json(new ApiResponse(200, userTweets, "User tweets fetched successfully"));
 });
+
+// const getUserTweets = asyncHandler(async (req, res) => {
+//   // Fetch user tweets with aggregation
+//   const userTweets = await Tweet.aggregate([
+//     {
+//       $match: {
+//         owner: req.user._id, // Match tweets owned by the logged-in user
+//       },
+//     },
+//     {
+//       $lookup: {
+//         from: "users", // Look up the user data (owner of the tweet)
+//         localField: "owner",
+//         foreignField: "_id",
+//         as: "tweetOwner",
+//         pipeline: [
+//           {
+//             $project: {
+//               username: 1,
+//               avatar: 1,
+//               fullname: 1,
+//             },
+//           },
+//         ],
+//       },
+//     },
+//     {
+//       $lookup: {
+//         from: "likes", // Look up likes for the tweet
+//         localField: "_id",
+//         foreignField: "tweet",
+//         as: "tweetLikes",
+//       },
+//     },
+//     {
+//       $addFields: {
+//         tweetLikesCount: { $size: "$tweetLikes" }, // Count the number of likes
+//         hasUserLikedTweet: {
+//           $in: [req.user._id, "$tweetLikes.likedBy"], // Check if the user has liked the tweet
+//         },
+//       },
+//     },
+//   ]);
+
+//   // Handle case if no tweets are found
+//   if (!userTweets || userTweets.length === 0) {
+//     throw new ApiError(400, "Could not fetch user tweets");
+//   }
+
+//   return res
+//     .status(200)
+//     .json(new ApiResponse(200, userTweets, "User tweets fetched successfully"));
+// });
 
 const updateTweet = asyncHandler(async (req, res) => {
   //TODO: update tweet

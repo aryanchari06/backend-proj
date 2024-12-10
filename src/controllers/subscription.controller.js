@@ -100,7 +100,7 @@ const getSubscribedChannels = asyncHandler(async (req, res) => {
 
   if (!subscriberId) throw new ApiError(400, "Invalid subscriber link");
 
-  const userChannelsSubsribedTo = await Subscription.aggregate([
+  const userChannelsSubscribedTo = await Subscription.aggregate([
     {
       $match: {
         subscriber: new mongoose.Types.ObjectId(subscriberId),
@@ -132,14 +132,15 @@ const getSubscribedChannels = asyncHandler(async (req, res) => {
     },
   ]);
 
-  if (!userChannelsSubsribedTo) throw new ApiError(404, "Subscriber not found");
+  if (!userChannelsSubscribedTo) throw new ApiError(404, "Subscriber not found");
 
+  console.log(userChannelsSubscribedTo)
   return res
     .status(200)
     .json(
       new ApiResponse(
         200,
-        userChannelsSubsribedTo,
+        userChannelsSubscribedTo,
         "Channels subscribered fetched sucessfully!"
       )
     );

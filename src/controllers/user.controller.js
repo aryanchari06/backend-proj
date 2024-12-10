@@ -6,8 +6,7 @@ import { ApiResponse } from "../utils/ApiResponse.js";
 import jwt from "jsonwebtoken";
 import { upload } from "../middlewares/multer.middleware.js";
 import mongoose from "mongoose";
-import ms from 'ms'; // Import the ms package to convert string durations
-
+import ms from "ms"; // Import the ms package to convert string durations
 
 const generateAccessAndRefreshTokens = async (userId) => {
   try {
@@ -150,7 +149,6 @@ const registerUser = asyncHandler(async (req, res) => {
 //     );
 // });
 
-
 const loginUser = asyncHandler(async (req, res) => {
   const { email, password, username } = req.body;
 
@@ -174,23 +172,23 @@ const loginUser = asyncHandler(async (req, res) => {
     "-password -refreshToken"
   );
 
-  const accessTokenExpiry = ms(process.env.ACCESS_TOKEN_EXPIRY || '1d'); 
-  const refreshTokenExpiry = ms(process.env.REFRESH_TOKEN_EXPIRY || '10d'); 
+  const accessTokenExpiry = ms(process.env.ACCESS_TOKEN_EXPIRY || "1d");
+  const refreshTokenExpiry = ms(process.env.REFRESH_TOKEN_EXPIRY || "10d");
 
   if (isNaN(accessTokenExpiry) || isNaN(refreshTokenExpiry)) {
-    throw new ApiError(400, 'Invalid expiry time in environment variables');
+    throw new ApiError(400, "Invalid expiry time in environment variables");
   }
 
   const options = {
     httpOnly: true,
     secure: false,
-    sameSite: 'Strict',
-    expires: new Date(Date.now() + accessTokenExpiry), 
+    sameSite: "Strict",
+    expires: new Date(Date.now() + accessTokenExpiry),
   };
 
   const refreshOptions = {
     ...options,
-    expires: new Date(Date.now() + refreshTokenExpiry), 
+    expires: new Date(Date.now() + refreshTokenExpiry),
   };
 
   return res
@@ -283,9 +281,12 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
 
 const changeCurrentPassword = asyncHandler(async (req, res) => {
   const { oldPassword, newPassword } = req.body;
+  console.log(oldPassword, newPassword);
   const user = await User.findById(req.user?._id);
   const isPasswordCorrect = await user.isPasswordCorrect(oldPassword);
-  if (!isPasswordCorrect) throw new ApiError(400, "Incorrect password");
+  if (!isPasswordCorrect) {
+    return res.status(400).json(new ApiResponse(400, "Incorrect Password"));
+  }
 
   user.password = newPassword;
   await user.save({ validateBeforeSave: false });
@@ -383,7 +384,7 @@ const updateUserCoverImage = asyncHandler(async (req, res) => {
 const getUserChannelProfile = asyncHandler(async (req, res) => {
   const { username } = req.params;
   if (!username?.trim()) throw new ApiError(400, "Username is missing");
-  
+
   const channel = await User.aggregate([
     //pipelines
     {
@@ -438,6 +439,14 @@ const getUserChannelProfile = asyncHandler(async (req, res) => {
         avatar: 1,
         coverImage: 1,
         email: 1,
+      },
+    },
+    {
+      $lookup: {
+        from: "videos",
+        localField: "_id",
+        foreignField: "owner",
+        as: "channelVideos",
       },
     },
   ]);
