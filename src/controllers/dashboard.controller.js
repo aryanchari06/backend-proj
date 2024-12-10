@@ -152,6 +152,21 @@ const getChannelVideos = asyncHandler(async (req, res) => {
         ],
       },
     },
+    {
+      $lookup: {
+        from: "likes",
+        localField: "_id",
+        foreignField: "video",
+        as: "videoLikes",
+      },
+    },
+    {
+      $addFields: {
+        likesCount: {
+          $size: "$videoLikes"
+        }
+      }
+    }
   ]);
 
   if (!channelVideos) throw new ApiError(404, "Channel videos not found");
