@@ -5,6 +5,7 @@ import { ApiError } from "../utils/ApiErrors.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { uploadOnCloudinary } from "../utils/Cloudinary.js";
+import { Like } from "../models/like.models.js";
 
 // const getAllVideos = asyncHandler(async (req, res) => {
 //   const { page = 1, limit = 10, query, sortBy, sortType, userId } = req.query;
@@ -167,17 +168,18 @@ const publishAVideo = asyncHandler(async (req, res) => {
   if (!videoLocalPath) throw new ApiError(404, "Video file missing");
   if (!thumbnailLocalPath) throw new ApiError(404, "Thumbnail file is missing");
 
+  console.log(videoLocalPath, thumbnailLocalPath);
+
   const videoFile = await uploadOnCloudinary(videoLocalPath);
   const thumbnail = await uploadOnCloudinary(thumbnailLocalPath);
 
   // console.log(videoFile)
   // console.log(videoFile, thumbnail)
 
-  if (!videoFile.url)
+  if (!videoFile?.url)
     throw new ApiError(400, "Error while uploading your video");
-  if (!thumbnail.url)
+  if (!thumbnail?.url)
     throw new ApiError(400, "Error while uploading your thumbnail");
-
 
   const video = await Video.create({
     videoFile: videoFile?.url,
@@ -402,18 +404,49 @@ const updateVideo = asyncHandler(async (req, res) => {
     );
 });
 
+// const deleteVideo = asyncHandler(async (req, res) => {
+//   const { videoId } = req.params;
+//   //TODO: delete video
+//   if (!videoId) throw new ApiError(400, "Invalid link");
+
+//   const deletedVideo = await Video.findByIdAndDelete(videoId);
+//   if (!deletedVideo)
+//     throw new ApiError(500, "Something went wrong while deleting the video");
+
+//   const deletedDocument = await Like.findOneAndDelete({
+//     video: videoId,
+//   });
+//   if (!deletedDocument)
+//     throw new ApiError(500, "No like document found for the video");
+
+//   return res
+//     .status(200)
+//     .json(new ApiResponse(200, deletedVideo, "Video Deleted Successfully"));
+// });
+
 const deleteVideo = asyncHandler(async (req, res) => {
   const { videoId } = req.params;
-  //TODO: delete video
-  if (!videoId) throw new ApiError(400, "Invalid link");
 
+  if (!videoId || !mongoose.Types.ObjectId.isValid(videoId)) {
+    throw new ApiError(400, "Invalid or missing video ID");
+  }
+
+  // Delete the video document
   const deletedVideo = await Video.findByIdAndDelete(videoId);
-  if (!deleteVideo)
-    throw new ApiError(500, "Something went wrong while deleting the video");
+  if (!deletedVideo) {
+    throw new ApiError(404, "Video not found");
+  }
+
+  // Delete associated like document
+  const deletedDocument = await Like.findOneAndDelete({ video: videoId });
+  if (!deletedDocument) {
+    throw new ApiError(404, `No like document found for video ID: ${videoId}`);
+    // Optional: you could decide not to throw an error here
+  }
 
   return res
     .status(200)
-    .json(new ApiResponse(200, deletedVideo, "Video Deleted Successfully"));
+    .json(new ApiResponse(200, deletedVideo, "Video deleted successfully"));
 });
 
 const togglePublishStatus = asyncHandler(async (req, res) => {
@@ -446,7 +479,6 @@ const togglePublishStatus = asyncHandler(async (req, res) => {
       )
     );
 });
-
 
 export {
   getAllVideos,

@@ -1,6 +1,4 @@
-// import { v2 as cloudinary } from "cloudinary";
-import fs from "fs";
-
+import fs from "fs/promises"; // Use the promise-based API for better async handling
 import { v2 as cloudinary } from "cloudinary";
 
 cloudinary.config({
@@ -11,16 +9,31 @@ cloudinary.config({
 
 const uploadOnCloudinary = async (localFilePath) => {
   try {
-    if (!localFilePath) return null;
+    if (!localFilePath) {
+      throw new Error("No file path provided for upload");
+    }
+
     const response = await cloudinary.uploader.upload(localFilePath, {
-      resource_type: "auto",
+      resource_type: "auto", // Automatically detect type (image/video/raw)
+      upload_preset: "ml_default",
     });
-    fs.unlinkSync(localFilePath)
-    // console.log("File is uploaded on cloudinary", response, response.url);
-    return response;
+
+    // Delete the temporary local file after successful upload
+    await fs.unlink(localFilePath);
+    return response; // Return Cloudinary response, including the URL
   } catch (error) {
-    fs.unlinkSync(localFilePath); //removes file from our server which was temporary
-    return null;
+    console.error(error.message)
+    console.error("Error uploading file to Cloudinary:", error);
+
+    // Attempt to delete the local file, but handle any errors gracefully
+    try {
+      await fs.unlink(localFilePath);
+    } catch (unlinkError) {
+      console.error("Error deleting local file:", unlinkError);
+    }
+
+    // Return error details or throw if needed
+    throw new Error("Failed to upload file to Cloudinary");
   }
 };
 

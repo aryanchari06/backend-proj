@@ -31,6 +31,8 @@ const toggleSubscription = asyncHandler(async (req, res) => {
     });
     if (!subscribeToChannel)
       throw new ApiError(500, "Failed to subscribe to channel");
+
+    console.log(subscribeToChannel)
   }
 
   return res.status(200).json(
@@ -111,7 +113,7 @@ const getSubscribedChannels = asyncHandler(async (req, res) => {
         from: "users",
         localField: "channel",
         foreignField: "_id",
-        as: "channelsUserSubscribedTo",
+        as: "channelUserSubscribedTo",
         pipeline: [
           {
             $project: {
@@ -126,15 +128,16 @@ const getSubscribedChannels = asyncHandler(async (req, res) => {
     {
       $addFields: {
         channelsSubscribedCount: {
-          $size: "$channelsUserSubscribedTo",
+          $size: "$channelUserSubscribedTo",
         },
       },
     },
   ]);
 
-  if (!userChannelsSubscribedTo) throw new ApiError(404, "Subscriber not found");
+  if (!userChannelsSubscribedTo)
+    throw new ApiError(404, "Subscriber not found");
 
-  console.log(userChannelsSubscribedTo)
+  // console.log(userChannelsSubscribedTo)
   return res
     .status(200)
     .json(

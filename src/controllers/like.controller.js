@@ -163,10 +163,10 @@ const getLikedVideos = asyncHandler(async (req, res) => {
           {
             $addFields: {
               likesCount: {
-                $size: "$videoLikes"
-              }
-            }
-          }
+                $size: "$videoLikes",
+              },
+            },
+          },
         ],
       },
     },
@@ -180,4 +180,9 @@ const getLikedVideos = asyncHandler(async (req, res) => {
     );
 });
 
-export { toggleCommentLike, toggleTweetLike, toggleVideoLike, getLikedVideos };
+export {
+  toggleCommentLike,
+  toggleTweetLike,
+  toggleVideoLike,
+  getLikedVideos,
+};
