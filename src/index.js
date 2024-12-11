@@ -10,13 +10,13 @@ dotenv.config({
 });
 // const app = express();
 
-app.use((req, res, next) => {
-  res.setHeader(
-    "Content-Security-Policy",
-    "default-src 'none'; script-src 'self' https://vercel.live; script-src-elem 'self' https://vercel.live; style-src 'self'; img-src 'self'; connect-src 'self'; font-src 'self';"
-  );
-  next();
-});
+// app.use((req, res, next) => {
+//   res.setHeader(
+//     "Content-Security-Policy",
+//     "default-src 'none'; script-src 'self' https://vercel.live; script-src-elem 'self' https://vercel.live; style-src 'self'; img-src 'self'; connect-src 'self'; font-src 'self';"
+//   );
+//   next();
+// });
 
 connectDB()
   .then(() => {
