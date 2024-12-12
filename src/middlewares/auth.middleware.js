@@ -16,7 +16,7 @@ export const verifyJWT = asyncHandler(async (req, _, next) => {
 
     if (!token) {
       console.error("Token is missing");
-      throw new ApiError(401, "Unauthorised request");
+      throw new ApiError(401, "Unauthorised request, token is missing");
     }
     // console.log("TOken:", token);
     const decodedToken = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET); //this is where you get the user info by decoding it
