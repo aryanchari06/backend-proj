@@ -10,11 +10,11 @@ dotenv.config({
 });
 // const app = express();
 
-app.use((req, res, next) => {
-  res.setHeader('Access-Control-Allow-Origin', 'http://localhost:5173'); // Frontend URL
-  res.setHeader('Access-Control-Allow-Credentials', 'true'); // Allow credentials
-  next();
-});
+// app.use((req, res, next) => {
+//   res.setHeader('Access-Control-Allow-Origin', 'http://localhost:5173'); // Frontend URL
+//   res.setHeader('Access-Control-Allow-Credentials', 'true'); // Allow credentials
+//   next();
+// });
 
 
 connectDB()
