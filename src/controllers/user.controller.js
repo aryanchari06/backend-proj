@@ -150,6 +150,8 @@ const registerUser = asyncHandler(async (req, res) => {
 // });
 
 const loginUser = asyncHandler(async (req, res) => {
+const isProduction = process.env.NODE_ENV === "production";
+
   const { email, password, username } = req.body;
 
   if (!email && !username)
@@ -179,21 +181,21 @@ const loginUser = asyncHandler(async (req, res) => {
     throw new ApiError(400, "Invalid expiry time in environment variables");
   }
 
-  const options = {
+  const cookieOptions = {
     httpOnly: true,
-    secure: true,
-    sameSite: "None",
+    secure: isProduction, 
+    sameSite: isProduction ? "None" : "Lax",
     expires: new Date(Date.now() + accessTokenExpiry),
   };
 
   const refreshOptions = {
-    ...options,
+    ...cookieOptions,
     expires: new Date(Date.now() + refreshTokenExpiry),
   };
 
   return res
     .status(200)
-    .cookie("accessToken", accessToken, options)
+    .cookie("accessToken", accessToken, cookieOptions)
     .cookie("refreshToken", refreshToken, refreshOptions)
     .json(
       new ApiResponse(
