@@ -211,6 +211,7 @@ const isProduction = process.env.NODE_ENV === "production";
 });
 
 const logoutUser = asyncHandler(async (req, res) => {
+  const isProduction = process.env.NODE_ENV === "production";
   await User.findByIdAndUpdate(
     req.user._id,
     {
@@ -225,7 +226,8 @@ const logoutUser = asyncHandler(async (req, res) => {
 
   const options = {
     httpOnly: true,
-    secure: true,
+    secure: isProduction,
+    sameSite: isProduction ? "None" : "Lax",
   };
 
   return res
