@@ -181,8 +181,8 @@ const loginUser = asyncHandler(async (req, res) => {
 
   const options = {
     httpOnly: true,
-    secure: false,
-    sameSite: "Strict",
+    secure: true,
+    sameSite: "None",
     expires: new Date(Date.now() + accessTokenExpiry),
   };
 
